@@ -1,0 +1,41 @@
+# Binarios para programas y plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Archivos de prueba
+*.test
+
+# Archivos de salida de cobertura
+*.out
+
+# Directorios de dependencias (quita el comentario si estás usando vendoring)
+# vendor/
+
+# Archivos de configuración de IDE y editores
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de log
+*.log
+
+# Archivos de entorno
+.env
+
+# Directorios y archivos específicos de Go
+/bin/
+/pkg/
+
+# Si estás usando GoLand
+*.iml
+
+# Archivos temporales
+*.tmp
