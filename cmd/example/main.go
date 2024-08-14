@@ -3,11 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/joho/godotenv"
 	"log"
 	"os"
 
-	"github.com/codigogp/letsgollm/llm"
-	"github.com/joho/godotenv"
+	"github.com/codigogp/letsgollm/internal/llm"
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 	// Crear una instancia de LLM para Anthropic
 	anthropicLLM, err := llm.New(llm.Config{
 		Provider:    llm.Anthropic,
-		ModelName:   "claude-2", // Asegúrate de usar el nombre correcto del modelo
+		ModelName:   "claude-2",
 		APIKey:      apiKey,
 		MaxTokens:   100,
 		Temperature: 0.7,
