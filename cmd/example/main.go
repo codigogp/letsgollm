@@ -1,61 +1,45 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"github.com/joho/godotenv"
-	"log"
-	"os"
+	"time"
 
-	"github.com/codigogp/letsgollm/internal/llm"
+	"github.com/codigogp/letsgollm/internal/tools/vector_storage"
 )
 
 func main() {
-	// Cargar variables de entorno desde el archivo .env
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error cargando el archivo .env")
+	fmt.Println("Iniciando programa...")
+
+	// Crear una nueva instancia de VectorDatabase
+	vdb := vector_storage.NewVectorDatabase("./db", true)
+	fmt.Println("Base de datos creada.")
+
+	// Añadir algunos vectores
+	fmt.Println("Añadiendo vectores...")
+	start := time.Now()
+	id1 := vdb.AddVector("Ejemplo 1", []float64{1, 2, 3}, map[string]interface{}{"tag": "test"}, true)
+	duration := time.Since(start)
+	fmt.Printf("Primer vector añadido con ID: %s en %v\n", id1, duration)
+
+	start = time.Now()
+	id2 := vdb.AddVector("Ejemplo 2", []float64{4, 5, 6}, map[string]interface{}{"tag": "test"}, true)
+	duration = time.Since(start)
+	fmt.Printf("Segundo vector añadido con ID: %s en %v\n", id2, duration)
+
+	// Realizar una búsqueda de similitud
+	fmt.Println("Realizando búsqueda de similitud...")
+	start = time.Now()
+	results := vdb.TopCosineSimilarity([]float64{1, 2, 3}, 2)
+	duration = time.Since(start)
+	fmt.Printf("Búsqueda completada en %v\n", duration)
+
+	if results != nil {
+		for _, result := range results {
+			fmt.Printf("ID: %s, Similitud: %f\n", result.Metadata["id"], result.Similarity)
+		}
+	} else {
+		fmt.Println("No se encontraron resultados.")
 	}
 
-	// Obtener la clave API de Anthropic desde las variables de entorno
-	apiKey := os.Getenv("ANTHROPIC_API_KEY")
-	if apiKey == "" {
-		log.Fatal("La clave API de Anthropic no está configurada en el archivo .env")
-	}
-
-	// Crear una instancia de LLM para Anthropic
-	anthropicLLM, err := llm.New(llm.Config{
-		Provider:    llm.Anthropic,
-		ModelName:   "claude-2",
-		APIKey:      apiKey,
-		MaxTokens:   100,
-		Temperature: 0.7,
-	})
-	if err != nil {
-		log.Fatalf("Error creando la instancia de Anthropic LLM: %v", err)
-	}
-
-	// Definir un prompt de ejemplo
-	prompt := "Explica el concepto de inteligencia artificial en 3 frases cortas."
-
-	// Generar una respuesta
-	ctx := context.Background()
-	response, err := anthropicLLM.GenerateResponse(ctx, prompt)
-	if err != nil {
-		log.Fatalf("Error generando respuesta: %v", err)
-	}
-
-	// Imprimir la respuesta
-	fmt.Printf("Prompt: %s\n\nRespuesta:\n%s\n", prompt, response)
-
-	// Ejemplo de uso asíncrono
-	fmt.Println("\nGenerando respuesta de forma asíncrona...")
-	respChan, errChan := anthropicLLM.GenerateResponseAsync(ctx, "¿Cuál es el futuro de la IA?")
-
-	select {
-	case resp := <-respChan:
-		fmt.Printf("\nRespuesta asíncrona:\n%s\n", resp)
-	case err := <-errChan:
-		log.Fatalf("Error en la generación asíncrona: %v", err)
-	}
+	fmt.Println("Programa finalizado.")
 }

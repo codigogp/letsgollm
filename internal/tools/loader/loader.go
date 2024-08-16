@@ -144,25 +144,34 @@ func readPDFFile(filePath string) (*TextDocument, error) {
 func readBlogFromURL(url string) (*TextDocument, error) {
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error al hacer la solicitud HTTP: %v", err)
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("status code error: %d %s", resp.StatusCode, resp.Status)
+	}
+
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error al parsear el HTML: %v", err)
 	}
 
 	title := doc.Find("title").Text()
 	var content strings.Builder
 
-	// Esto es una simplificación. Podrías necesitar ajustar los selectores
-	// dependiendo de la estructura del blog
-	doc.Find("article").Each(func(i int, s *goquery.Selection) {
+	// Intentar extraer el contenido principal
+	doc.Find("article, .content, .post-content, .entry-content").Each(func(i int, s *goquery.Selection) {
 		content.WriteString(s.Text())
 	})
 
-	text := content.String()
+	// Si no se encontró contenido, intentar con el body
+	if content.Len() == 0 {
+		content.WriteString(doc.Find("body").Text())
+	}
+
+	text := strings.TrimSpace(content.String())
+
 	return &TextDocument{
 		FileSize:       int64(len(text)),
 		WordCount:      len(strings.Fields(text)),
